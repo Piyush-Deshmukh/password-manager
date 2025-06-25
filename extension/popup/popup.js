@@ -315,7 +315,7 @@ class PasswordManager {
 
   async showSavePasswordForm() {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    
+
     try {
       const url = new URL(tab.url);
       document.getElementById('url').value = tab.url;
@@ -324,10 +324,36 @@ class PasswordManager {
       document.getElementById('url').value = tab.url;
       document.getElementById('website').value = tab.url;
     }
-    
+
+    // Extract email/username and password from active tab
+    try {
+      const result = await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: () => {
+          const emailField = document.querySelector('input[type="email"], input[name*=user], input[name*=email], input[id*=user], input[id*=email]');
+          const passwordField = document.querySelector('input[type="password"]');
+
+          return {
+            username: emailField ? emailField.value : '',
+            password: passwordField ? passwordField.value : ''
+          };
+        },
+      });
+
+      const { username, password } = result[0].result || {};
+      document.getElementById('username').value = username || '';
+      document.getElementById('password').value = password || '';
+    } catch (error) {
+      console.warn('Could not extract credentials from page:', error);
+      document.getElementById('username').value = '';
+      document.getElementById('password').value = '';
+    }
+
+    // Show the save form
     document.getElementById('mainInterface').classList.add('hidden');
     document.getElementById('savePasswordForm').classList.remove('hidden');
   }
+
 
   async savePassword() {
     const website = document.getElementById('website').value.trim();
