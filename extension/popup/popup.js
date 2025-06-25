@@ -1,18 +1,16 @@
 const API_BASE_URL = 'http://localhost:5000/api';
 
 // Password visibility toggle function - FIXED
-window.togglePassword = function(fieldId) {
-  const field = document.getElementById(fieldId);
-  const toggle = field.parentElement.querySelector('.password-toggle');
-  
-  if (field.type === 'password') {
-    field.type = 'text';
-    toggle.textContent = '🙈';
-  } else {
-    field.type = 'password';
-    toggle.textContent = '👁️';
+document.addEventListener('click', (e) => {
+  if (e.target.classList.contains('password-toggle')) {
+    const input = e.target.closest('.password-input-container').querySelector('input');
+    if (!input) return;
+
+    input.type = input.type === 'password' ? 'text' : 'password';
+    e.target.textContent = input.type === 'password' ? '👁️' : '🙈';
   }
-};
+});
+
 
 class PasswordManager {
   constructor() {
