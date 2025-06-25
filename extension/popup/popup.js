@@ -171,14 +171,14 @@ class PasswordManager {
       });
 
       const passwords = await response.json();
-      this.displayPasswords(passwords, 'allPasswordsList', true);
+      this.displayPasswords(passwords, 'allPasswordsList');
     } catch (error) {
       console.error('Failed to load all passwords:', error);
       document.getElementById('allPasswordsList').innerHTML = '<div class="no-passwords">Failed to load passwords</div>';
     }
   }
 
-  displayPasswords(passwords, containerId, showActions = false) {
+  displayPasswords(passwords, containerId) {
     const container = document.getElementById(containerId);
     container.innerHTML = '';
 
@@ -190,40 +190,33 @@ class PasswordManager {
     passwords.forEach(pwd => {
       const item = document.createElement('div');
       item.className = 'password-item';
-      
-      const actionsHtml = showActions ? `
-        <div class="password-actions">
-          <button class="btn-small btn-secondary" data-action="copy" data-password="${pwd.password}">📋 Copy</button>
-          <button class="btn-small btn-danger" data-action="delete" data-id="${pwd._id}">🗑️ Delete</button>
-        </div>
-      ` : '';
 
       item.innerHTML = `
         <div class="password-item-title">${pwd.website}</div>
         <div class="password-item-subtitle">${pwd.username}</div>
-        ${actionsHtml}
+        <div class="password-actions">
+          <button class="btn-small btn-secondary" data-action="copy" data-password="${pwd.password}">📋 Copy</button>
+          <button class="btn-small btn-danger" data-action="delete" data-id="${pwd._id}">🗑️ Delete</button>
+        </div>
       `;
       
-      if (!showActions) {
-        item.addEventListener('click', () => this.fillPassword(pwd));
-      } else {
-        // Add event listeners for action buttons - FIXED
-        const copyBtn = item.querySelector('[data-action="copy"]');
-        const deleteBtn = item.querySelector('[data-action="delete"]');
-        
-        if (copyBtn) {
-          copyBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.copyPassword(pwd.password);
-          });
-        }
-        
-        if (deleteBtn) {
-          deleteBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.deletePassword(pwd._id);
-          });
-        }
+      item.addEventListener('click', () => this.fillPassword(pwd));
+      
+      const copyBtn = item.querySelector('[data-action="copy"]');
+      const deleteBtn = item.querySelector('[data-action="delete"]');
+      
+      if (copyBtn) {
+        copyBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.copyPassword(pwd.password);
+        });
+      }
+      
+      if (deleteBtn) {
+        deleteBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.deletePassword(pwd._id);
+        });
       }
       
       container.appendChild(item);
