@@ -16,6 +16,7 @@ class PasswordManager {
   constructor() {
     this.token = null;
     this.currentView = 'currentSite';
+    this.editingPasswordId = null;
     this.init();
   }
 
@@ -37,7 +38,7 @@ class PasswordManager {
     document.getElementById('savePasswordBtn').addEventListener('click', () => this.showSavePasswordForm());
     document.getElementById('logoutBtn').addEventListener('click', () => this.logout());
     document.getElementById('saveBtn').addEventListener('click', () => this.savePassword());
-    document.getElementById('cancelBtn').addEventListener('click', () => this.showMainInterface());
+    document.getElementById('cancelBtn').addEventListener('click', () => this.cancelSaveOrEdit());
     
     document.getElementById('currentSiteTab').addEventListener('click', () => this.switchTab('currentSite'));
     document.getElementById('allPasswordsTab').addEventListener('click', () => this.switchTab('allPasswords'));
@@ -196,6 +197,7 @@ class PasswordManager {
         <div class="password-item-subtitle">${pwd.username}</div>
         <div class="password-actions">
           <button class="btn-small btn-secondary" data-action="copy" data-password="${pwd.password}">📋 Copy</button>
+          <button class="btn-small btn-primary" data-action="edit" data-id="${pwd._id}">✏️ Edit</button>
           <button class="btn-small btn-danger" data-action="delete" data-id="${pwd._id}">🗑️ Delete</button>
         </div>
       `;
@@ -204,6 +206,7 @@ class PasswordManager {
       
       const copyBtn = item.querySelector('[data-action="copy"]');
       const deleteBtn = item.querySelector('[data-action="delete"]');
+      const editBtn = item.querySelector('[data-action="edit"]');
       
       if (copyBtn) {
         copyBtn.addEventListener('click', (e) => {
@@ -212,6 +215,13 @@ class PasswordManager {
         });
       }
       
+      if (editBtn) {
+        editBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.editPassword(pwd);
+        });
+      }
+
       if (deleteBtn) {
         deleteBtn.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -223,7 +233,7 @@ class PasswordManager {
     });
   }
 
-  // FIXED: Copy password function
+  // Copy password function
   async copyPassword(password) {
     try {
       await navigator.clipboard.writeText(password);
@@ -234,7 +244,27 @@ class PasswordManager {
     }
   }
 
-  // FIXED: Delete password function
+  // Edit password function
+  async editPassword(passwordData) {
+    this.editingPasswordId = passwordData._id;
+    
+    // Pre-fill the form with existing data
+    document.getElementById('website').value = passwordData.website || '';
+    document.getElementById('url').value = passwordData.url || '';
+    document.getElementById('username').value = passwordData.username || '';
+    document.getElementById('password').value = passwordData.password || '';
+    document.getElementById('notes').value = passwordData.notes || '';
+    
+    // Update the save button text to indicate editing
+    const saveBtn = document.getElementById('saveBtn');
+    saveBtn.textContent = '✏️ Update Password';
+    
+    // Show the form
+    document.getElementById('mainInterface').classList.add('hidden');
+    document.getElementById('savePasswordForm').classList.remove('hidden');
+  }
+
+  // Delete password function
   async deletePassword(passwordId) {
     if (!confirm('Are you sure you want to delete this password?')) return;
 
@@ -307,6 +337,8 @@ class PasswordManager {
   }
 
   async showSavePasswordForm() {
+    this.resetEditState();
+
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
     try {
@@ -361,8 +393,12 @@ class PasswordManager {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/passwords`, {
-        method: 'POST',
+      const isEditing = this.editingPasswordId !== null;
+      const method = isEditing ? 'PUT' : 'POST';
+      const apiUrl = isEditing ? `${API_BASE_URL}/passwords/${this.editingPasswordId}` : `${API_BASE_URL}/passwords`;
+      
+      const response = await fetch(apiUrl, {
+        method: method,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${this.token}`,
@@ -371,11 +407,17 @@ class PasswordManager {
       });
 
       if (response.ok) {
-        this.showSuccess('saveSuccess', 'Password saved successfully!');
+        const message = isEditing ? 'Password updated successfully!' : 'Password saved successfully!';
+        this.showSuccess('saveSuccess', message);
         setTimeout(() => {
           this.showMainInterface();
-          this.loadPasswordsForCurrentSite();
+          if (this.currentView === 'currentSite') {
+            this.loadPasswordsForCurrentSite();
+          } else {
+            this.loadAllPasswords();
+          }
           this.clearSaveForm();
+          this.resetEditState();
         }, 1000);
       } else {
         const data = await response.json();
@@ -408,6 +450,18 @@ class PasswordManager {
     document.getElementById('mainInterface').classList.remove('hidden');
     document.getElementById('savePasswordForm').classList.add('hidden');
     this.clearMessages();
+  }
+
+  cancelSaveOrEdit() {
+    this.showMainInterface();
+    this.clearSaveForm();
+    this.resetEditState();
+  }
+
+  resetEditState() {
+    this.editingPasswordId = null;
+    const saveBtn = document.getElementById('saveBtn');
+    saveBtn.textContent = '💾 Save Password';
   }
 
   showError(elementId, message) {

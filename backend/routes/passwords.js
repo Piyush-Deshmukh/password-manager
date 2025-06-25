@@ -93,6 +93,42 @@ router.get('/url/:url', auth, async (req, res) => {
   }
 });
 
+// Update password
+router.put('/:id', auth, async (req, res) => {
+  try {
+    const { website, url, username, password, notes } = req.body;
+    const user = await User.findById(req.userId);
+    
+    // Encrypt the new password
+    const encryptedPassword = CryptoJS.AES.encrypt(
+      password,
+      user.encryptionKey
+    ).toString();
+    
+    // Find and update the password
+    const updatedPassword = await Password.findOneAndUpdate(
+      { _id: req.params.id, userId: req.userId },
+      {
+        website,
+        url,
+        username,
+        encryptedPassword,
+        notes,
+        updatedAt: new Date()
+      },
+      { new: true } // Return the updated document
+    );
+    
+    if (!updatedPassword) {
+      return res.status(404).json({ message: 'Password not found' });
+    }
+    
+    res.json(updatedPassword);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 // Delete password
 router.delete('/:id', auth, async (req, res) => {
   try {
