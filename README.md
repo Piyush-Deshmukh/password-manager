@@ -1,6 +1,12 @@
-# Password Manager Extension
+<h1 align="center">
+  <br>
+    <a href="https://github.com/Piyush-Deshmukh/password-manager"><img src="https://github.com/user-attachments/assets/70ebd039-f983-4851-972f-a0c9848e9d0d" alt="Password Manager Extension Home Page" ></a>
+  <br>
+    Password Manager Extension
+  <br>
+</h1>
 
-A secure password manager Chrome extension with encrypted storage and auto-fill capabilities.
+<h4 align="center">A secure password manager Chrome extension with encrypted storage and auto-fill capabilities.</h4>
 
 ## 🔧 Prerequisites
 
@@ -56,6 +62,23 @@ PORT=5000
 3. Click **Load unpacked**
 4. Select your `extension/` directory
 5. The extension should now appear in your extensions list
+
+## Screenshots
+
+### Login/Signup Screen
+![Login/Signup Screen](https://github.com/user-attachments/assets/3c3dc641-d689-4d64-9dfa-a36209105bce)
+
+### Current Site Password List
+![Current Site Password List](https://github.com/user-attachments/assets/c0ee6e7c-4d52-4729-8cb0-9fcb36cf6ca1)
+
+### Click on "Save Password" button on HomePage to save it, it will automatically capture credentials
+![Save Password](https://github.com/user-attachments/assets/3a4d1d09-175f-4c19-a116-644f34ed9f7a)
+
+### Autofill password by clicking on credentials card
+![Autofill Password](https://github.com/user-attachments/assets/1c02f6c2-77c9-4c25-a9be-152073c3f9f2)
+
+### All Passwords List
+![All Passowords List](https://github.com/user-attachments/assets/7cbd847d-b094-4eaf-ad22-1b11040df58f)
 
 ## 🏃‍♂️ Running the Application
 
